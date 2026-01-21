@@ -1,0 +1,2457 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AD1 Flashcards (H4+H5)</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#121a2a;
+      --text:#e9eefc;
+      --muted:#a8b3d6;
+      --accent:#7aa2ff;
+      --good:#47d18c;
+      --bad:#ff6b6b;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --border: rgba(255,255,255,.14);
+      --glass: rgba(255,255,255,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 30% 10%, #152146 0%, var(--bg) 55%, #060913 100%);
+      color:var(--text);
+      min-height:100vh;
+      padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    .wrap{ max-width:860px; margin:0 auto; }
+    header{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:12px; padding:12px 6px 6px;
+    }
+    .title{ display:flex; flex-direction:column; gap:4px; }
+    h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .sub{ color:var(--muted); font-size:12px; line-height:1.35; }
+    .pillbar{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill{
+      font-size:12px; color:var(--muted);
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--glass);
+      backdrop-filter: blur(6px);
+    }
+
+    .banner{
+      margin: 6px 6px 10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,107,107,.30);
+      background: rgba(255,107,107,.10);
+      color: var(--text);
+      font-size:12px;
+      line-height:1.35;
+      display:none;
+    }
+    .banner b{ color: var(--bad); font-weight:700; }
+    .banner .small{ color: var(--muted); display:block; margin-top:4px; }
+
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:10px 6px 14px;
+    }
+    .controls input, .controls select{
+      flex: 1 1 160px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: var(--glass);
+      color:var(--text);
+      outline:none;
+    }
+    .controls select{ cursor:pointer; }
+    .controls input::placeholder{ color: rgba(168,179,214,.75); }
+
+    .btn{
+      border:none; cursor:pointer;
+      padding:10px 12px;
+      border-radius:12px;
+      background: rgba(122,162,255,.18);
+      color:var(--text);
+      border:1px solid rgba(122,162,255,.28);
+      transition: transform .06s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      font-size:13px;
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn.secondary{
+      background: var(--glass);
+      border:1px solid var(--border);
+      color:var(--muted);
+    }
+    .btn.good{
+      background: rgba(71,209,140,.14);
+      border:1px solid rgba(71,209,140,.30);
+    }
+    .btn.bad{
+      background: rgba(255,107,107,.14);
+      border:1px solid rgba(255,107,107,.30);
+    }
+
+    .card-area{ padding: 0 6px 12px; }
+    .card{
+      position:relative;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 330px;
+      display:flex;
+      align-items:stretch;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .face{
+      flex:1;
+      padding: 18px 18px 16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:var(--muted);
+      flex-wrap:wrap;
+    }
+    .tag b{ color: var(--accent); font-weight:700; }
+    .qtext{
+      font-size:18px;
+      line-height:1.35;
+      letter-spacing:.2px;
+      margin:0;
+      white-space: pre-wrap;
+    }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      opacity:.95;
+    }
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,.12);
+      margin: 10px 0 0;
+    }
+    .answer{
+      margin-top:10px;
+      padding-top:12px;
+      color: var(--text);
+      font-size:15px;
+      line-height:1.45;
+      white-space: pre-wrap;
+    }
+    .hidden{ display:none; }
+
+    .footerbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding: 10px 6px 20px;
+      justify-content:space-between;
+    }
+    .leftbar, .rightbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
+    }
+    .stat{
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+
+    @media (max-width:520px){
+      .qtext{ font-size:17px; }
+      .card{ min-height: 360px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>AD1 Flashcards — Hoofdstuk 1 t.e.m. 7</h1>
+      <div class="sub">Tik de kaart om te flippen. Swipe links/rechts of gebruik knoppen. Progress wordt opgeslagen als je browser opslag toelaat.</div>
+    </div>
+    <div class="pillbar">
+      <div class="pill" id="pillCount">0 kaarten</div>
+      <div class="pill" id="pillMode">Mode: Alles</div>
+    </div>
+  </header>
+
+  <div class="banner" id="storageBanner">
+    <b>Opslag geblokkeerd:</b> je “gekend/niet gekend” wordt niet bewaard op dit toestel.
+    <span class="small">Open dit bestand bij voorkeur in Safari via een echte link (bv. GitHub Pages) of “Zet op beginscherm” nadat je via Safari op een https-adres zit.</span>
+  </div>
+
+  <div class="controls">
+    <select id="mode">
+      <option value="all">Alles</option>
+      <option value="h1">Alleen H1 (Intro & Performantie)</option>
+      <option value="h2">Alleen H2 (Strings & Pattern Matching)</option>
+      <option value="h3">Alleen H3 (Lineaire Datastructuren)</option>
+      <option value="h4">Alleen H4 (Lineaire ADT’s)</option>
+      <option value="h5">Alleen H5 (Sorteren)</option>
+      <option value="h6">Alleen H6 (Trees)</option>
+      <option value="h7">Alleen H7 (Hashing)</option>
+      <option value="unknown">Alleen “Niet gekend”</option>
+      <option value="known">Alleen “Gekend”</option>
+    </select>
+    <input id="search" placeholder="Zoek (bv. 'stabiel', 'heap', 'O(n log n)')…" inputmode="search" />
+    <button class="btn secondary" id="shuffleBtn" type="button">Shuffle</button>
+    <button class="btn secondary" id="resetBtn" type="button">Reset progress</button>
+  </div>
+
+  <div class="card-area">
+    <div class="card" id="card" role="button" aria-label="Flashcard" tabindex="0">
+      <div class="face">
+        <div class="tag" id="tagLine"><b>H4</b> • Vraag 1/1</div>
+        <p class="qtext" id="qtext">—</p>
+
+        <div>
+          <div class="hint" id="hint">Tip: tik om antwoord te tonen. (Of gebruik “Show/Hide Answer”)</div>
+          <div class="divider"></div>
+          <div class="answer hidden" id="answer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footerbar">
+    <div class="leftbar">
+      <button class="btn secondary" id="prevBtn" type="button">← Vorige</button>
+      <button class="btn" id="flipBtn" type="button">Show / Hide Answer</button>
+      <button class="btn secondary" id="nextBtn" type="button">Volgende →</button>
+    </div>
+    <div class="rightbar">
+      <button class="btn bad" id="markBad" type="button">Niet gekend</button>
+      <button class="btn good" id="markGood" type="button">Gekend</button>
+      <div class="stat" id="progressStat">Gekend: 0 • Niet: 0</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  window.addEventListener("error", (ev)=>{
+    try{
+      const b=document.getElementById("storageBanner");
+      if(b){
+        b.style.display="block";
+        b.innerHTML = "<b>JS error:</b> " + (ev && ev.message ? ev.message : "onbekend") + "<span class=\"small\">Tip: open via Safari (niet in Bestanden-preview). Als dit al in Safari is: stuur een screenshot van deze fout.</span>";
+      }
+    }catch(e){}
+  });
+
+  // ---------- Data: 55 kaarten (Q/A) ----------
+  const CARDS = [
+  {
+    "ch": "H1",
+    "q": "Wat is performance characteristic?",
+    "a": "Een functie f(n) die het aantal (elementaire) stappen van een algoritme uitdrukt als functie van inputgrootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is input size n?",
+    "a": "Een maat voor hoe groot de input is (bv. lengte van een lijst, aantal elementen in een vector, aantal karakters in een string)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is Big-O?",
+    "a": "Bovengrens: f(n) \u2208 O(g(n)) betekent dat f(n) asymptotisch niet sneller groeit dan een constante keer g(n)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is Big-\u03a9?",
+    "a": "Ondergrens: f(n) \u2208 \u03a9(g(n)) betekent dat f(n) asymptotisch minstens zo snel groeit als een constante keer g(n)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is Big-\u0398?",
+    "a": "Strakke grens: f(n) \u2208 \u0398(g(n)) betekent zowel O(g(n)) als \u03a9(g(n))."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is asymptotic?",
+    "a": "Gedrag voor grote n; constanten en lagere-orde termen worden minder belangrijk."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is best case?",
+    "a": "Minimale tijd over alle inputs van grootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is worst case?",
+    "a": "Maximale tijd over alle inputs van grootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is average case?",
+    "a": "Verwachte tijd onder een expliciete verdeling van inputs; vereist model/assumpties."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is step counting?",
+    "a": "Techniek waarbij je (ruw of precies) telt hoeveel primitieve operaties worden uitgevoerd."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is dominant term?",
+    "a": "De term die de groei bepaalt voor grote n (bv. n^2 domineert n)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is nested loops?",
+    "a": "Een inner-loop die per iteratie van een outer-loop (of recursie) wordt uitgevoerd; complexiteiten vermenigvuldigen of sommeren."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is recurrence?",
+    "a": "Relatie voor recursieve algoritmen (bv. T(n)=T(n-1)+b(n) of T(n)=2T(n/2)+n)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is rule of thumb (recursion)?",
+    "a": "Schat r(n)=aantal recursieve calls; bepaal b(i)=kost van de body bij i-de call; totaal \u2248 \u03a3 b(i) over r(n) stappen."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is constant time?",
+    "a": "O(1): onafhankelijk van n (bv. car, vector-ref)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is linear time?",
+    "a": "O(n): evenredig met n (\u00e9\u00e9n doorloop)."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is quadratic time?",
+    "a": "O(n^2): typisch dubbele lus of \u03a3 i."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is logarithmic time?",
+    "a": "O(log n): probleemgrootte wordt telkens met factor >1 verkleind (bv. binaire zoek)."
+  },
+  {
+    "ch": "H1",
+    "q": "Verschil tussen O, \u03a9 en \u0398?",
+    "a": "O is een asymptotische bovengrens, \u03a9 een ondergrens, \u0398 een strakke grens (beide tegelijk)."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom vergelijken we algoritmen niet enkel met \u2018seconden\u2019 op \u00e9\u00e9n computer?",
+    "a": "Metingen hangen af van hardware, compiler, caches, inputdistributie; analyse met f(n) vergelijkt structureel voor alle n."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat betekent \u2018constanten negeren\u2019 in asymptotische analyse?",
+    "a": "Je laat constante factoren weg (bv. 100n en n zijn beide \u0398(n)), omdat groei met n het belangrijkste is."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een voorbeeld van twee verschillende algoritmen met dezelfde O-notatie maar andere praktijkprestatie.",
+    "a": "Insertion sort en selection sort zijn beide O(n^2), maar insertion is vaak sneller op bijna-gesorteerde data; selection doet minder moves."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom is \u0398-informatie vaak nuttiger dan enkel O?",
+    "a": "\u0398 geeft zowel boven- als ondergrens: je weet de echte groeorde, niet enkel \u2018niet erger dan\u2019."
+  },
+  {
+    "ch": "H1",
+    "q": "Hoe herken je vaak O(log n) gedrag in een algoritme?",
+    "a": "Omdat de input telkens met een vaste factor krimpt (halveren/derden) of je over een gebalanceerde boomhoogte loopt."
+  },
+  {
+    "ch": "H1",
+    "q": "Wanneer leidt recursie tot O(n) vs O(n^2)?",
+    "a": "O(n) als elke stap O(1) werk doet en je n stappen hebt; O(n^2) als de body-kost groeit met i en je \u03a3 i krijgt."
+  },
+  {
+    "ch": "H1",
+    "q": "Wat is het verschil tussen \u2018aantal recursieve calls\u2019 en \u2018kost per call\u2019?",
+    "a": "Calls tellen is r(n); per call is b(i). Totale kost is niet enkel r(n) als b(i) niet constant is."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer Big-\u0398.",
+    "a": "Strakke grens: f(n) \u2208 \u0398(g(n)) betekent zowel O(g(n)) als \u03a9(g(n))."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer average case.",
+    "a": "Verwachte tijd onder een expliciete verdeling van inputs; vereist model/assumpties."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van linear time.",
+    "a": "Het doorlopen van een lijst om het maximum te vinden."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van linear time.",
+    "a": "Het doorlopen van een lijst om het maximum te vinden."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer best case.",
+    "a": "Minimale tijd over alle inputs van grootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer linear time.",
+    "a": "O(n): evenredig met n (\u00e9\u00e9n doorloop)."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van recurrence.",
+    "a": "Bij mergesort: T(n)=2T(n/2)+O(n). Bij lineaire recursie: T(n)=T(n-1)+O(1)."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van performance characteristic.",
+    "a": "fgreatest(n)=\u0398(n) voor een greatest die een lijst \u00e9\u00e9n keer doorloopt."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat average case betekent.",
+    "a": "Verwachte tijd onder een expliciete verdeling van inputs; vereist model/assumpties."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom is Big-\u03a9 nuttig bij het vergelijken van algoritmen?",
+    "a": "Omdat je hiermee het gedrag voor grote inputs kan vergelijken zonder afhankelijk te zijn van hardware/implementatiedetails; je focust op groei met n."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer performance characteristic.",
+    "a": "Een functie f(n) die het aantal (elementaire) stappen van een algoritme uitdrukt als functie van inputgrootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer performance characteristic.",
+    "a": "Een functie f(n) die het aantal (elementaire) stappen van een algoritme uitdrukt als functie van inputgrootte n."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat recurrence betekent.",
+    "a": "Relatie voor recursieve algoritmen (bv. T(n)=T(n-1)+b(n) of T(n)=2T(n/2)+n)."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer rule of thumb (recursion).",
+    "a": "Schat r(n)=aantal recursieve calls; bepaal b(i)=kost van de body bij i-de call; totaal \u2248 \u03a3 b(i) over r(n) stappen."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat quadratic time betekent.",
+    "a": "O(n^2): typisch dubbele lus of \u03a3 i."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van constant time.",
+    "a": "Een array-index (vector-ref) of het lezen van de head van een gelinkte lijst."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat logarithmic time betekent.",
+    "a": "O(log n): probleemgrootte wordt telkens met factor >1 verkleind (bv. binaire zoek)."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat nested loops betekent.",
+    "a": "Een inner-loop die per iteratie van een outer-loop (of recursie) wordt uitgevoerd; complexiteiten vermenigvuldigen of sommeren."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van worst case.",
+    "a": "Quicksort met steeds slechtste pivot: O(n^2)."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer step counting.",
+    "a": "Techniek waarbij je (ruw of precies) telt hoeveel primitieve operaties worden uitgevoerd."
+  },
+  {
+    "ch": "H1",
+    "q": "Definieer rule of thumb (recursion).",
+    "a": "Schat r(n)=aantal recursieve calls; bepaal b(i)=kost van de body bij i-de call; totaal \u2248 \u03a3 b(i) over r(n) stappen."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom is asymptotic nuttig bij het vergelijken van algoritmen?",
+    "a": "Omdat je hiermee het gedrag voor grote inputs kan vergelijken zonder afhankelijk te zijn van hardware/implementatiedetails; je focust op groei met n."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom is Big-\u03a9 nuttig bij het vergelijken van algoritmen?",
+    "a": "Omdat je hiermee het gedrag voor grote inputs kan vergelijken zonder afhankelijk te zijn van hardware/implementatiedetails; je focust op groei met n."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van quadratic time.",
+    "a": "Een dubbele lus over alle paren (i,j) of insertion/selection/bubble sort in worst-case."
+  },
+  {
+    "ch": "H1",
+    "q": "Leg in 1\u20132 zinnen uit wat quadratic time betekent.",
+    "a": "O(n^2): typisch dubbele lus of \u03a3 i."
+  },
+  {
+    "ch": "H1",
+    "q": "Waarom is step counting nuttig bij het vergelijken van algoritmen?",
+    "a": "Omdat je hiermee het gedrag voor grote inputs kan vergelijken zonder afhankelijk te zijn van hardware/implementatiedetails; je focust op groei met n."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van linear time.",
+    "a": "Het doorlopen van een lijst om het maximum te vinden."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van input size n.",
+    "a": "Bij strings: n=lengte van de tekst; bij sorteren: n=aantal elementen."
+  },
+  {
+    "ch": "H1",
+    "q": "Geef een typisch voorbeeld van worst case.",
+    "a": "Quicksort met steeds slechtste pivot: O(n^2)."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer substring.",
+    "a": "Een fragment van een string dat op opeenvolgende posities voorkomt."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer prefix.",
+    "a": "Een substring die start op positie 0 van de string."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer proper prefix.",
+    "a": "Een prefix die niet gelijk is aan de hele string (korter dan de string)."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer suffix.",
+    "a": "Een substring die eindigt op het laatste karakter van de string."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer pattern matching.",
+    "a": "Het zoeken of een patroon p voorkomt in tekst t, en zo ja op welke positie(s)."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer brute-force matching.",
+    "a": "Vergelijk p met t op elke startpositie; bij mismatch schuif je 1 positie op."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer QuickSearch (Sunday).",
+    "a": "Bij mismatch kijk je naar het karakter net na het venster en schuif je volgens een shift-tabel; vaak sneller gemiddeld."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer KMP.",
+    "a": "Knuth\u2013Morris\u2013Pratt: gebruikt informatie over herhalingen in het patroon om nooit terug te gaan in de tekst; worst-case lineair."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer failure function / sigma.",
+    "a": "\u03c3(x) = lengte van langste prefix van p dat ook suffix is van p[0..x-1] (proper) \u2192 bepaalt hoeveel je kan verschuiven."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer alignment.",
+    "a": "Een positionering van p onder t; je test dan karakter per karakter."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer overshooting.",
+    "a": "Te ver doorschuiven zodat je een mogelijke match overslaat; KMP/QuickSearch vermijden dit met extra info."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer alphabet.",
+    "a": "De set mogelijke karakters; be\u00efnvloedt probabiliteit van matches en pre-processing."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer preprocessing.",
+    "a": "Vooraf tabellen berekenen (shift/failure) om de eigenlijke zoekfase te versnellen."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer worst-case for brute force.",
+    "a": "O(np\u00b7nt) met np=|p| en nt=|t| (veel herstarts)."
+  },
+  {
+    "ch": "H2",
+    "q": "Definieer KMP complexity.",
+    "a": "O(nt + np): failure in O(np), zoeken in O(nt)."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat is het kernverschil tussen brute-force en KMP?",
+    "a": "Brute-force kan in de tekst terugkeren en vergelijkt karakters opnieuw; KMP gebruikt \u03c3/failure zodat het nooit teruggaat in de tekst (lineaire tijd)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom heet KMP \u2018lineair\u2019 in de tekstlengte?",
+    "a": "Omdat elke tekstpositie hoogstens een constante hoeveelheid keer betrokken wordt in vergelijkingen; de tekstindex gaat monotonisch vooruit."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat berekent de \u03c3/failure functie intu\u00eftief?",
+    "a": "Hoeveel van een prefix van p al \u2018klaarstaat\u2019 na een mismatch, zodat je dat deel niet opnieuw hoeft te vergelijken."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is preprocessing de moeite waard bij veel zoekopdrachten met hetzelfde patroon?",
+    "a": "Je betaalt O(np) \u00e9\u00e9n keer voor de tabel en profiteert bij elke zoekopdracht met O(nt) zoekwerk."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer kan QuickSearch gemiddeld beter presteren dan brute-force?",
+    "a": "Bij grote alfabetten en weinig herhalingen: shifts zijn vaak groot waardoor je veel startposities overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat betekent \u2018strings are structure-shy\u2019 in de cursuscontext?",
+    "a": "Strings hebben weinig interne structuur om snel te zoeken/organiseren; rijkere structuren (lists/trees/hashes) laten snellere find toe."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat is het verschil tussen \u2018found at position\u2019 en \u2018number of occurrences\u2019 bij pattern matching?",
+    "a": "De eerste geeft \u00e9\u00e9n index (eerste/een match); de tweede vraagt alle matches (mogelijk overlappend) te rapporteren."
+  },
+  {
+    "ch": "H2",
+    "q": "Gegeven nt en np: wat is de worst-case kost van brute-force zoeken?",
+    "a": "O(np\u00b7nt) omdat je in het slechtste geval bij elke startpositie bijna heel p vergelijkt."
+  },
+  {
+    "ch": "H2",
+    "q": "Leg brute-force matching uit in je eigen woorden.",
+    "a": "Vergelijk p met t op elke startpositie; bij mismatch schuif je 1 positie op."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Geef een voorbeeld van suffix.",
+    "a": "Een substring die eindigt op het laatste karakter van de string."
+  },
+  {
+    "ch": "H2",
+    "q": "Leg overshooting uit in je eigen woorden.",
+    "a": "Te ver doorschuiven zodat je een mogelijke match overslaat; KMP/QuickSearch vermijden dit met extra info."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Gegeven nt en np: wat is de worst-case kost van brute-force zoeken?",
+    "a": "O(np\u00b7nt) omdat je in het slechtste geval bij elke startpositie bijna heel p vergelijkt."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is brute-force matching belangrijk in string matching?",
+    "a": "Vergelijk p met t op elke startpositie; bij mismatch schuif je 1 positie op."
+  },
+  {
+    "ch": "H2",
+    "q": "Geef een voorbeeld van KMP complexity.",
+    "a": "O(nt + np): failure in O(np), zoeken in O(nt)."
+  },
+  {
+    "ch": "H2",
+    "q": "Leg proper prefix uit in je eigen woorden.",
+    "a": "Een prefix die niet gelijk is aan de hele string (korter dan de string)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is proper prefix belangrijk in string matching?",
+    "a": "Een prefix die niet gelijk is aan de hele string (korter dan de string)."
+  },
+  {
+    "ch": "H2",
+    "q": "Geef een voorbeeld van failure function / sigma.",
+    "a": "\u03c3(x) = lengte van langste prefix van p dat ook suffix is van p[0..x-1] (proper) \u2192 bepaalt hoeveel je kan verschuiven."
+  },
+  {
+    "ch": "H2",
+    "q": "Geef een voorbeeld van failure function / sigma.",
+    "a": "\u03c3(x) = lengte van langste prefix van p dat ook suffix is van p[0..x-1] (proper) \u2192 bepaalt hoeveel je kan verschuiven."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is worst-case for brute force belangrijk in string matching?",
+    "a": "O(np\u00b7nt) met np=|p| en nt=|t| (veel herstarts)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is preprocessing belangrijk in string matching?",
+    "a": "Vooraf tabellen berekenen (shift/failure) om de eigenlijke zoekfase te versnellen."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat is de kost om de KMP failure function te berekenen?",
+    "a": "O(np) omdat indices vooruitgaan en nooit langdurig terugvallen; totaal aantal stappen is lineair in |p|."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom is KMP complexity belangrijk in string matching?",
+    "a": "O(nt + np): failure in O(np), zoeken in O(nt)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Geef een voorbeeld van alphabet.",
+    "a": "De set mogelijke karakters; be\u00efnvloedt probabiliteit van matches en pre-processing."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Wat is de kost om de KMP failure function te berekenen?",
+    "a": "O(np) omdat indices vooruitgaan en nooit langdurig terugvallen; totaal aantal stappen is lineair in |p|."
+  },
+  {
+    "ch": "H2",
+    "q": "Waarom kan \u2018overshooting\u2019 gebeuren bij na\u00efef verschuiven en hoe voorkomt KMP dat?",
+    "a": "Na mismatch verschuif je vaak start naar mismatch-positie, maar je kan een eerder herhaald prefix missen; KMP verschuift precies met \u03c3 zodat je geen match overslaat."
+  },
+  {
+    "ch": "H2",
+    "q": "Wanneer is een prefix ook een suffix en waarom is dat relevant?",
+    "a": "Als p herhalingen heeft (bv. 'abab'), dan kan een prefix gelijk zijn aan een suffix; dat bepaalt hoeveel je kan hergebruiken na mismatch (\u03c3)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is positional list ADT?",
+    "a": "Een lijst waarbij je posities (cursors/iterators) gebruikt om te navigeren en te muteren (insert/delete op positie)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is ranked list ADT?",
+    "a": "Een lijst waarbij elementen gerangschikt zijn op \u2018rank\u2019 (index/positie als nummer) met operaties zoals select(i) en insert-at(i)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is sorted list ADT?",
+    "a": "Een lijst die altijd gesorteerd blijft; insert plaatst op juiste plek; find kan profiteren van orde (vroeg stoppen/binary search bij vector)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is single linked list?",
+    "a": "Elke node wijst naar de volgende; vooruit lopen is makkelijk, teruglopen niet zonder extra info."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is double linked list?",
+    "a": "Elke node heeft next \u00e9n prev; makkelijker delete en backward traversal, maar meer pointer-overhead."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is vector representation?",
+    "a": "Contigu geheugen; random access O(1), maar insert/delete midden kost verschuiven O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is linked representation?",
+    "a": "Nodes met pointers; insert/delete lokaal O(1) als je positie hebt, maar random access O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is binary search?",
+    "a": "Zoeken in gesorteerde vector door herhaald te halveren; O(log n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is sequential search?",
+    "a": "Lineair doorlopen tot match; O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is sentinel?",
+    "a": "Extra \u2018dummy\u2019 element om randgevallen (empty/end) eenvoudiger te maken en checks te verminderen."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is ring/circular list?",
+    "a": "Laatste node wijst terug naar eerste; handig voor round-robin en circulaire queues."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is foreign key?",
+    "a": "Een waarde in \u00e9\u00e9n structuur die fungeert als sleutel in een andere dictionary; vereist koppeling tussen datasets."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is map over ADT?",
+    "a": "Toepassen van een functie op alle elementen via ADT-operaties i.p.v. rechtstreeks in de representatie te kijken."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is invariant?",
+    "a": "Eigenschap die altijd moet gelden (bv. sortedness, correcte next/prev links) om operaties correct/effici\u00ebnt te houden."
+  },
+  {
+    "ch": "H3",
+    "q": "Waarom is binary search enkel toepasbaar op bepaalde representaties?",
+    "a": "Je hebt random access nodig om meteen naar midden te springen (vector/array). Op gelinkte lijsten is \u2018midden\u2019 vinden O(n) en verliest het voordeel."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk insert in het midden: vector vs gelinkt.",
+    "a": "Vector: O(n) door shifts. Gelinkt: O(1) als je de node/positie al hebt, maar positie vinden kost vaak O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Waarom kan een sorted-list ADT met vector representatie sneller zijn dan met linked representatie voor find?",
+    "a": "Vector is random access: je kan binary search doen (O(log n)). Linked moet sequentieel lopen (O(n))."
+  },
+  {
+    "ch": "H3",
+    "q": "Waarom kan een ring-ADT bepaalde operaties niet allemaal O(1) maken met een vector?",
+    "a": "Omdat sommige operaties verplaatsingen/shift vereisen om de logische volgorde te behouden; je kan niet overal tegelijk O(1) zijn zonder extra structuur."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat is het voordeel van een sentinel in zoekalgoritmen op lijsten?",
+    "a": "Je vermijdt herhaalde null?/end checks door een \u2018stopper\u2019 te plaatsen; code wordt simpeler en soms iets sneller."
+  },
+  {
+    "ch": "H3",
+    "q": "Wat bedoelen we met \u2018ADT gebruiken i.p.v. representatie manipuleren\u2019?",
+    "a": "Je blijft bij de interface-operaties (new, insert!, delete!, next, value, \u2026) zodat je code onafhankelijk blijft van implementatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Waarom is een invariant cruciaal bij datastructuren?",
+    "a": "Operaties vertrouwen erop; als invariant breekt (bv. verkeerde links, niet meer gesorteerd) worden find/insert/delete fout of traag."
+  },
+  {
+    "ch": "H3",
+    "q": "Geef de kernidee van sequential search.",
+    "a": "Lineair doorlopen tot match; O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij sentinel?",
+    "a": "Extra \u2018dummy\u2019 element om randgevallen (empty/end) eenvoudiger te maken en checks te verminderen. (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk single linked list met double linked list.",
+    "a": "Double linked laat ook achteruit gaan en delete eenvoudiger met prev, maar gebruikt extra geheugen per node."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "Geef de kernidee van single linked list.",
+    "a": "Elke node wijst naar de volgende; vooruit lopen is makkelijk, teruglopen niet zonder extra info."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij sequential search?",
+    "a": "Lineair doorlopen tot match; O(n). (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Geef de kernidee van invariant.",
+    "a": "Eigenschap die altijd moet gelden (bv. sortedness, correcte next/prev links) om operaties correct/effici\u00ebnt te houden."
+  },
+  {
+    "ch": "H3",
+    "q": "In welke situatie kies je voor sorted list ADT?",
+    "a": "Een lijst die altijd gesorteerd blijft; insert plaatst op juiste plek; find kan profiteren van orde (vroeg stoppen/binary search bij vector)."
+  },
+  {
+    "ch": "H3",
+    "q": "In welke situatie kies je voor positional list ADT?",
+    "a": "Een lijst waarbij je posities (cursors/iterators) gebruikt om te navigeren en te muteren (insert/delete op positie)."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk single linked list met double linked list.",
+    "a": "Double linked laat ook achteruit gaan en delete eenvoudiger met prev, maar gebruikt extra geheugen per node."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Geef de kernidee van map over ADT.",
+    "a": "Toepassen van een functie op alle elementen via ADT-operaties i.p.v. rechtstreeks in de representatie te kijken."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij foreign key?",
+    "a": "Een waarde in \u00e9\u00e9n structuur die fungeert als sleutel in een andere dictionary; vereist koppeling tussen datasets. (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "In welke situatie kies je voor map over ADT?",
+    "a": "Toepassen van een functie op alle elementen via ADT-operaties i.p.v. rechtstreeks in de representatie te kijken."
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij sorted list ADT?",
+    "a": "Een lijst die altijd gesorteerd blijft; insert plaatst op juiste plek; find kan profiteren van orde (vroeg stoppen/binary search bij vector). (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij sorted list ADT?",
+    "a": "Een lijst die altijd gesorteerd blijft; insert plaatst op juiste plek; find kan profiteren van orde (vroeg stoppen/binary search bij vector). (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij ring/circular list?",
+    "a": "Laatste node wijst terug naar eerste; handig voor round-robin en circulaire queues. (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "Welke trade-off hoort typisch bij invariant?",
+    "a": "Eigenschap die altijd moet gelden (bv. sortedness, correcte next/prev links) om operaties correct/effici\u00ebnt te houden. (Denk aan tijd vs geheugen vs flexibiliteit.)"
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "In welke situatie kies je voor vector representation?",
+    "a": "Contigu geheugen; random access O(1), maar insert/delete midden kost verschuiven O(n)."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk single linked list met double linked list.",
+    "a": "Double linked laat ook achteruit gaan en delete eenvoudiger met prev, maar gebruikt extra geheugen per node."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk single linked list met double linked list.",
+    "a": "Double linked laat ook achteruit gaan en delete eenvoudiger met prev, maar gebruikt extra geheugen per node."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk vector representation met linked representation.",
+    "a": "Vector: O(1) access maar dure inserts; gelinkt: flexibele inserts maar trage random access."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Vergelijk sequential search met binary search.",
+    "a": "Sequential: O(n) maar geen orde nodig; binary: O(log n) maar vereist gesorteerde random-access representatie."
+  },
+  {
+    "ch": "H3",
+    "q": "Geef de kernidee van ranked list ADT.",
+    "a": "Een lijst waarbij elementen gerangschikt zijn op \u2018rank\u2019 (index/positie als nummer) met operaties zoals select(i) en insert-at(i)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: tree terminology?",
+    "a": "Wortel (root), kinderen (children), ouder (parent), bladeren (leaves), diepte (depth), hoogte (height), subtree."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: binary tree?",
+    "a": "Elke node heeft maximaal 2 kinderen (left/right)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: binary search tree (BST)?",
+    "a": "Voor elke node: keys in linkersubtree < key(node) < keys in rechter subtree (volgens comparator)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: in-order traversal?",
+    "a": "Traverse links \u2192 node \u2192 rechts; in BST levert dit keys in gesorteerde volgorde."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: pre-order traversal?",
+    "a": "Node \u2192 links \u2192 rechts; handig om structuur te kopi\u00ebren/serialiseren."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: post-order traversal?",
+    "a": "Links \u2192 rechts \u2192 node; handig voor delete/free van subtrees."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: tree height?",
+    "a": "Lengte van langste pad van root naar blad (aantal edges/nodes afhankelijk van definitie)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: balanced tree?",
+    "a": "Hoogte blijft O(log n) zodat operaties snel blijven (geen degeneratie)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: AVL tree?",
+    "a": "Zelfbalancerende BST met balansfactoren; herstelt balans via rotaties na insert/delete."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: rotation?",
+    "a": "Lokale herstructurering (LL, RR, LR, RL) om AVL-invariant te herstellen zonder BST-orde te breken."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: tagging (balanced/Lhigh/Rhigh)?",
+    "a": "Annotaties/hoogte-informatie om balansfactoren te bewaken en rotaties te triggeren."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: current/iterator in tree?",
+    "a": "Een \u2018cursor\u2019 naar een node om operaties te versnellen (bv. next/prev) zonder telkens van root te zoeken."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: dictionary with BST?",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: degenerate BST?",
+    "a": "BST die lijkt op een lijst (hoogte ~ n) door slechte insertvolgorde (gesorteerde keys)."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat betekent: why debugging AVL is hard?",
+    "a": "Veel cases + pointers/tags; foutje in rotatie of tag-update breekt invariant subtiel."
+  },
+  {
+    "ch": "H6",
+    "q": "Waarom is in-order traversal speciaal voor BST\u2019s?",
+    "a": "Omdat de BST-orde garandeert dat links kleiner is en rechts groter; daardoor produceert in-order een gesorteerde sleutelvolgorde."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat is de worst-case tijd voor find in een BST en wanneer treedt die op?",
+    "a": "O(n) wanneer de BST degenereert (bv. insert van al gesorteerde keys) en hoogte ~ n."
+  },
+  {
+    "ch": "H6",
+    "q": "Hoe zorgt AVL-balancering voor O(log n) operaties?",
+    "a": "AVL houdt hoogteverschillen beperkt via rotaties, zodat de hoogte altijd \u0398(log n) blijft en find/insert/delete O(log n) worden."
+  },
+  {
+    "ch": "H6",
+    "q": "Wat is het doel van rotaties (LL/RR/LR/RL)?",
+    "a": "Balans herstellen na een insert/delete door subtrees lokaal te herstructureren zonder de in-order sleutelorde te verliezen."
+  },
+  {
+    "ch": "H6",
+    "q": "Waarom is \u2018check\u2019 (validator) nuttig bij AVL debugging?",
+    "a": "Het kan automatisch controleren of BST-orde en AVL-balans/tags kloppen, zodat je bugs sneller vindt."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin dictionary with BST faalt of belangrijk wordt.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat degenerate BST is en waarom het ertoe doet.",
+    "a": "BST die lijkt op een lijst (hoogte ~ n) door slechte insertvolgorde (gesorteerde keys)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij balanced tree.",
+    "a": "Hoogte blijft O(log n) zodat operaties snel blijven (geen degeneratie)."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat tree terminology is en waarom het ertoe doet.",
+    "a": "Wortel (root), kinderen (children), ouder (parent), bladeren (leaves), diepte (depth), hoogte (height), subtree."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin binary search tree (BST) faalt of belangrijk wordt.",
+    "a": "Voor elke node: keys in linkersubtree < key(node) < keys in rechter subtree (volgens comparator). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij rotation.",
+    "a": "Lokale herstructurering (LL, RR, LR, RL) om AVL-invariant te herstellen zonder BST-orde te breken."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin dictionary with BST faalt of belangrijk wordt.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij post-order traversal.",
+    "a": "Links \u2192 rechts \u2192 node; handig voor delete/free van subtrees."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat dictionary with BST is en waarom het ertoe doet.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij pre-order traversal.",
+    "a": "Node \u2192 links \u2192 rechts; handig om structuur te kopi\u00ebren/serialiseren."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat dictionary with BST is en waarom het ertoe doet.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij current/iterator in tree.",
+    "a": "Een \u2018cursor\u2019 naar een node om operaties te versnellen (bv. next/prev) zonder telkens van root te zoeken."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin why debugging AVL is hard faalt of belangrijk wordt.",
+    "a": "Veel cases + pointers/tags; foutje in rotatie of tag-update breekt invariant subtiel. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin AVL tree faalt of belangrijk wordt.",
+    "a": "Zelfbalancerende BST met balansfactoren; herstelt balans via rotaties na insert/delete. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat binary tree is en waarom het ertoe doet.",
+    "a": "Elke node heeft maximaal 2 kinderen (left/right)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin rotation faalt of belangrijk wordt.",
+    "a": "Lokale herstructurering (LL, RR, LR, RL) om AVL-invariant te herstellen zonder BST-orde te breken. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin current/iterator in tree faalt of belangrijk wordt.",
+    "a": "Een \u2018cursor\u2019 naar een node om operaties te versnellen (bv. next/prev) zonder telkens van root te zoeken. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin pre-order traversal faalt of belangrijk wordt.",
+    "a": "Node \u2192 links \u2192 rechts; handig om structuur te kopi\u00ebren/serialiseren. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin dictionary with BST faalt of belangrijk wordt.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat tagging (balanced/Lhigh/Rhigh) is en waarom het ertoe doet.",
+    "a": "Annotaties/hoogte-informatie om balansfactoren te bewaken en rotaties te triggeren."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij degenerate BST.",
+    "a": "BST die lijkt op een lijst (hoogte ~ n) door slechte insertvolgorde (gesorteerde keys)."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat post-order traversal is en waarom het ertoe doet.",
+    "a": "Links \u2192 rechts \u2192 node; handig voor delete/free van subtrees."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij post-order traversal.",
+    "a": "Links \u2192 rechts \u2192 node; handig voor delete/free van subtrees."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij dictionary with BST.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin balanced tree faalt of belangrijk wordt.",
+    "a": "Hoogte blijft O(log n) zodat operaties snel blijven (geen degeneratie). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat binary tree is en waarom het ertoe doet.",
+    "a": "Elke node heeft maximaal 2 kinderen (left/right)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin current/iterator in tree faalt of belangrijk wordt.",
+    "a": "Een \u2018cursor\u2019 naar een node om operaties te versnellen (bv. next/prev) zonder telkens van root te zoeken. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij dictionary with BST.",
+    "a": "Implementeer dictionary door key-value pairs in BST nodes op key te ordenen; find/insert/delete O(h)."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat binary tree is en waarom het ertoe doet.",
+    "a": "Elke node heeft maximaal 2 kinderen (left/right)."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat rotation is en waarom het ertoe doet.",
+    "a": "Lokale herstructurering (LL, RR, LR, RL) om AVL-invariant te herstellen zonder BST-orde te breken."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin degenerate BST faalt of belangrijk wordt.",
+    "a": "BST die lijkt op een lijst (hoogte ~ n) door slechte insertvolgorde (gesorteerde keys). (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een typische eigenschap/invariant bij why debugging AVL is hard.",
+    "a": "Veel cases + pointers/tags; foutje in rotatie of tag-update breekt invariant subtiel."
+  },
+  {
+    "ch": "H6",
+    "q": "Leg uit wat balanced tree is en waarom het ertoe doet.",
+    "a": "Hoogte blijft O(log n) zodat operaties snel blijven (geen degeneratie)."
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin AVL tree faalt of belangrijk wordt.",
+    "a": "Zelfbalancerende BST met balansfactoren; herstelt balans via rotaties na insert/delete. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H6",
+    "q": "Geef een voorbeeldsituatie waarin tagging (balanced/Lhigh/Rhigh) faalt of belangrijk wordt.",
+    "a": "Annotaties/hoogte-informatie om balansfactoren te bewaken en rotaties te triggeren. (Bv. slechte insertvolgorde \u2192 hoogte groeit.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer hash table.",
+    "a": "Vector-achtige structuur waarin een hashfunctie h(key) een index (home address) berekent om key-value op te slaan."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer hash function.",
+    "a": "Functie die keys omzet naar table-indices; doel: snelle O(1) benadering en uniforme spreiding."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer home address.",
+    "a": "De index die h(key) oplevert; de eerste plek waar je probeert op te slaan/zoeken."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer collision.",
+    "a": "Twee verschillende keys krijgen dezelfde home address."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer load factor (\u03b1).",
+    "a": "\u03b1 = (#gevulde plaatsen) / M (table size). Hogere \u03b1 \u21d2 meer collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer external chaining.",
+    "a": "Collision-resolutie: elke table-entry bevat een (gelinkte) lijst/bucket van associaties."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer open addressing.",
+    "a": "Collision-resolutie: alle items zitten in de tabel; bij collision probe je andere posities via rehashing/probing."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer linear probing.",
+    "a": "Open addressing met probe-sequence: h(k), h(k)+c, h(k)+2c,\u2026 (mod M)."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer secondary hashing/double hashing.",
+    "a": "Probe-step hangt af van key: h(k,i)=h1(k)+i\u00b7h2(k) (mod M) om clustering te verminderen."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer tombstone.",
+    "a": "Marker \u2018deleted\u2019 in open addressing zodat zoekprobes niet voortijdig stoppen na deletions."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer funneling.",
+    "a": "Veel keys vallen samen op een beperkt aantal indices (slechte spreiding)."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer avalanche.",
+    "a": "Kleine wijziging (1 bit) in key veroorzaakt grote wijziging (~\u00bd bits) in hash output \u21d2 goede spreiding."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer division method.",
+    "a": "h(k)=k mod M; kies M verstandig (vaak prime) om patronen te vermijden."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer folding method.",
+    "a": "Combineer digits/bits (som/xor) om een index te krijgen; eenvoudig maar kan slecht spreiden."
+  },
+  {
+    "ch": "H7",
+    "q": "Definieer digit selection.",
+    "a": "Kies specifieke digits/bits uit de key; vereist analyse om funneling te vermijden."
+  },
+  {
+    "ch": "H7",
+    "q": "Waarom kan find in een hash table \u2018gemiddeld\u2019 O(1) zijn maar niet altijd?",
+    "a": "Als h goed spreidt en \u03b1 laag blijft, zijn buckets/probes kort. Bij slechte h of hoge \u03b1 krijg je veel collisions en kan het naar O(n) gaan."
+  },
+  {
+    "ch": "H7",
+    "q": "Waarom moet je bij division method M vaak prime kiezen?",
+    "a": "Om te vermijden dat keys met gemeenschappelijke factoren steeds op dezelfde resten vallen (funneling/clustering)."
+  },
+  {
+    "ch": "H7",
+    "q": "Waarom zijn deletions lastig bij open addressing?",
+    "a": "Als je een slot \u2018empty\u2019 maakt, stopt find te vroeg in een probe-sequence en mist items die verderop zitten; daarom gebruik je tombstones."
+  },
+  {
+    "ch": "H7",
+    "q": "Vergelijk external chaining met open addressing.",
+    "a": "Chaining: eenvoudiger deletions, maar extra pointers/lijsten. Open addressing: alles in array (cache-vriendelijk) maar gevoelig voor clustering en delete-complexiteit."
+  },
+  {
+    "ch": "H7",
+    "q": "Wat is clustering bij linear probing?",
+    "a": "Collisions maken lange aaneengesloten blokken (\u2018clusters\u2019); die verhogen de kans op nieuwe collisions en vertragen find/insert."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg external chaining uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Collision-resolutie: elke table-entry bevat een (gelinkte) lijst/bucket van associaties."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is open addressing een goede keuze?",
+    "a": "Collision-resolutie: alle items zitten in de tabel; bij collision probe je andere posities via rehashing/probing. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg hash table uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Vector-achtige structuur waarin een hashfunctie h(key) een index (home address) berekent om key-value op te slaan."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is folding method een goede keuze?",
+    "a": "Combineer digits/bits (som/xor) om een index te krijgen; eenvoudig maar kan slecht spreiden. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij hash function?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg tombstone uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Marker \u2018deleted\u2019 in open addressing zodat zoekprobes niet voortijdig stoppen na deletions."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is digit selection een goede keuze?",
+    "a": "Kies specifieke digits/bits uit de key; vereist analyse om funneling te vermijden. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg collision uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Twee verschillende keys krijgen dezelfde home address."
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij hash function?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg open addressing uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Collision-resolutie: alle items zitten in de tabel; bij collision probe je andere posities via rehashing/probing."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg collision uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Twee verschillende keys krijgen dezelfde home address."
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij secondary hashing/double hashing?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is hash table een goede keuze?",
+    "a": "Vector-achtige structuur waarin een hashfunctie h(key) een index (home address) berekent om key-value op te slaan. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg hash function uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Functie die keys omzet naar table-indices; doel: snelle O(1) benadering en uniforme spreiding."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is funneling een goede keuze?",
+    "a": "Veel keys vallen samen op een beperkt aantal indices (slechte spreiding). (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg tombstone uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Marker \u2018deleted\u2019 in open addressing zodat zoekprobes niet voortijdig stoppen na deletions."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is tombstone een goede keuze?",
+    "a": "Marker \u2018deleted\u2019 in open addressing zodat zoekprobes niet voortijdig stoppen na deletions. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg open addressing uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Collision-resolutie: alle items zitten in de tabel; bij collision probe je andere posities via rehashing/probing."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg collision uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Twee verschillende keys krijgen dezelfde home address."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg secondary hashing/double hashing uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Probe-step hangt af van key: h(k,i)=h1(k)+i\u00b7h2(k) (mod M) om clustering te verminderen."
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij load factor (\u03b1)?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is home address een goede keuze?",
+    "a": "De index die h(key) oplevert; de eerste plek waar je probeert op te slaan/zoeken. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is hash function een goede keuze?",
+    "a": "Functie die keys omzet naar table-indices; doel: snelle O(1) benadering en uniforme spreiding. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is load factor (\u03b1) een goede keuze?",
+    "a": "\u03b1 = (#gevulde plaatsen) / M (table size). Hogere \u03b1 \u21d2 meer collisions. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is folding method een goede keuze?",
+    "a": "Combineer digits/bits (som/xor) om een index te krijgen; eenvoudig maar kan slecht spreiden. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg home address uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "De index die h(key) oplevert; de eerste plek waar je probeert op te slaan/zoeken."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is tombstone een goede keuze?",
+    "a": "Marker \u2018deleted\u2019 in open addressing zodat zoekprobes niet voortijdig stoppen na deletions. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Leg funneling uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Veel keys vallen samen op een beperkt aantal indices (slechte spreiding)."
+  },
+  {
+    "ch": "H7",
+    "q": "Leg external chaining uit en geef \u00e9\u00e9n gevolg voor performantie.",
+    "a": "Collision-resolutie: elke table-entry bevat een (gelinkte) lijst/bucket van associaties."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is secondary hashing/double hashing een goede keuze?",
+    "a": "Probe-step hangt af van key: h(k,i)=h1(k)+i\u00b7h2(k) (mod M) om clustering te verminderen. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is hash function een goede keuze?",
+    "a": "Functie die keys omzet naar table-indices; doel: snelle O(1) benadering en uniforme spreiding. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is hash table een goede keuze?",
+    "a": "Vector-achtige structuur waarin een hashfunctie h(key) een index (home address) berekent om key-value op te slaan. (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij collision?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H7",
+    "q": "Wanneer is funneling een goede keuze?",
+    "a": "Veel keys vallen samen op een beperkt aantal indices (slechte spreiding). (Goed als je snelle gemiddeld-O(1) lookups wil en keys/hash goed zijn.)"
+  },
+  {
+    "ch": "H7",
+    "q": "Welke fout leidt vaak tot problemen bij open addressing?",
+    "a": "Typische fout: een hashfunctie kiezen die niet uniform spreidt of een load factor laten oplopen zonder resize; gevolg: veel collisions."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat is een Abstract Data Type (ADT) en waarin verschilt het van een implementatie?",
+    "a": "Een ADT beschrijft *wat* de operaties doen (gedrag/contract), onafhankelijk van de representatie. Een implementatie beschrijft *hoe* je dat gedrag realiseert (bv. vector, gelinkte lijst, heap)."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom kan een lineair ADT ge\u00c3\u00afmplementeerd worden met een niet-lineaire datastructuur?",
+    "a": "Omdat \u00e2\u0080\u009clineair\u00e2\u0080\u009d slaat op het *gedrag* (bv. FIFO/LIFO/HPFO), niet op de fysieke vorm. Een heap (boom in vector) kan bv. een priority queue (lineair \u00e2\u0080\u0098uitname-gedrag\u00e2\u0080\u0099) implementeren."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat wordt bedoeld met het gedrag van een ADT?",
+    "a": "De abstracte regels/orde waarin elementen worden toegevoegd en verwijderd (bv. LIFO, FIFO, HPFO), plus de betekenis van operaties zoals peek/top/serve/delete."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom zijn ADT-specificaties onafhankelijk van programmeertaal?",
+    "a": "Omdat ze als abstract contract worden beschreven (operaties + input/output), en pas later in een specifieke taal (Scheme/C/Java) ge\u00c3\u00afmplementeerd worden."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat is het verschil tussen logische orde en fysieke representatie?",
+    "a": "Logische orde = in welke volgorde het ADT elementen \u00e2\u0080\u0098ziet\u00e2\u0080\u0099 (bv. FIFO). Fysieke representatie = hoe het in geheugen ligt (vectorindices, nodes/pointers)."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat betekent LIFO en hoe manifesteert dit zich in het stack-ADT?",
+    "a": "Last In First Out: het laatst gepushte element wordt als eerste gepopt. \u00e2\u0080\u0098Top\u00e2\u0080\u0099 en \u00e2\u0080\u0098pop!\u00e2\u0080\u0099 werken dus altijd op het meest recent toegevoegde element."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef de volledige set van operaties van het stack ADT en hun betekenis.",
+    "a": "new (maak stack), stack? (typecheck), push! (voeg toe), top (lees bovenste zonder verwijderen), pop! (lees + verwijder bovenste), empty?, full?."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat is het verschil tussen top en pop!?",
+    "a": "top leest enkel het bovenste element; pop! leest \u00c3\u00a9n verwijdert het bovenste element."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is push! in beide stack-implementaties O(1)?",
+    "a": "Vector-stack: schrijf op index first-free en increment. Gelinkte stack: cons vooraan en update head pointer. Beide doen constante pointer/index updates."
+  },
+  {
+    "ch": "H4",
+    "q": "Wanneer is een vectori\u00c3\u00able stack vol?",
+    "a": "Wanneer first-free gelijk is aan vector-length(storage): er is geen vrije positie meer in de vaste array."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is een gelinkte stack nooit full?",
+    "a": "Er is geen vaste capaciteit; je kan blijven cons\u00e2\u0080\u0099en zolang er heapgeheugen beschikbaar is (dus full? is #f in de slides)."
+  },
+  {
+    "ch": "H4",
+    "q": "Vergelijk flexibiliteit en geheugenverbruik van vector-stack vs gelinkte stack.",
+    "a": "Vector-stack: lage overhead, maar vaste grootte (weinig flexibel). Gelinkte stack: heel flexibel qua grootte, maar pointer/cons overhead per element."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat betekent FIFO en hoe verschilt dit fundamenteel van LIFO?",
+    "a": "First In First Out: het eerst toegevoegde element wordt eerst verwijderd. Bij LIFO is het net omgekeerd."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef alle operaties van het queue ADT en hun betekenis.",
+    "a": "new, queue?, enqueue! (achteraan toevoegen), peek (voorste lezen zonder verwijderen), serve! (voorste lezen + verwijderen), empty?, full?."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat is het verschil tussen peek en serve!?",
+    "a": "peek leest de kop zonder verwijderen; serve! leest de kop en verwijdert hem daarna."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is een circulaire vector nodig bij een vectori\u00c3\u00able queue?",
+    "a": "Zonder circulariteit zou head \u00e2\u0080\u0098opschuiven\u00e2\u0080\u0099 en je ruimte vooraan verliezen. Met modulo hergebruik je vrijgekomen plaatsen en blijven enqueue/serve O(1)."
+  },
+  {
+    "ch": "H4",
+    "q": "Wanneer is een circulaire queue vol?",
+    "a": "Wanneer (rear+1) mod capacity == head. (Je houdt typisch \u00c3\u00a9\u00c3\u00a9n lege slot vrij om full vs empty te onderscheiden.)"
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is modulo-rekenen essentieel bij vectori\u00c3\u00able queues?",
+    "a": "Omdat head en rear rond moeten \u00e2\u0080\u0098wrapen\u00e2\u0080\u0099 wanneer ze het einde van de vector bereiken: index = (index+1) mod capacity."
+  },
+  {
+    "ch": "H4",
+    "q": "Vergelijk performantie van gelinkte en vectori\u00c3\u00able queues.",
+    "a": "Beide hebben new/empty/full/peek/enqueue/serve in O(1), maar trade-off is flexibiliteit (gelinkt) vs vaste capaciteit + lager overhead (vector)."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat betekent HPFO?",
+    "a": "Highest Priority First Out: bij verwijderen/serve komt altijd het element met de hoogste prioriteit als eerste."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is een priority queue geen stabiele datastructuur?",
+    "a": "Omdat elk element precies \u00c3\u00a9\u00c3\u00a9n keer in en \u00c3\u00a9\u00c3\u00a9n keer uit moet; als serve! O(n) is, wordt totaal gebruik duur. Je wil typisch zowel enqueue als serve effici\u00c3\u00abnt."
+  },
+  {
+    "ch": "H4",
+    "q": "Wat is een priority queue item en waarom wordt het gebruikt?",
+    "a": "Een item is (value . priority). Zo kan je de prioriteit vergelijken terwijl je de value teruggeeft bij peek/serve."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom zijn na\u00c3\u00afeve implementaties met lijsten ineffici\u00c3\u00abnt?",
+    "a": "Sorted-list: enqueue kost O(n) (invoegen op juiste plaats). Positional-list: serve kost \u00ce\u0098(n) (maximum zoeken). In beide gevallen heb je een dure operatie per element."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is een heap geschikt als implementatie van een priority queue?",
+    "a": "Heap garandeert dat het \u00e2\u0080\u0098beste\u00e2\u0080\u0099 element bovenaan zit. Daardoor zijn peek O(1) en insert!/delete! O(log n), goed voor herhaald in/uit."
+  },
+  {
+    "ch": "H4",
+    "q": "Welke operaties op een heap hebben O(log n) complexiteit?",
+    "a": "insert! en delete! (door sift-up / sift-down over de heaphoogte ~ log2(n))."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is queue (FIFO) invariant belangrijk in dit hoofdstuk?",
+    "a": "Zorgt dat de volgorde van verwerking klopt (bv. BFS)."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van stack (LIFO) invariant.",
+    "a": "Call stack bij functiereturns/undo in editors."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef de typische tijdscomplexiteit van priority queue (HPFO) en leg kort uit.",
+    "a": "Heap: insert/delete O(log n), peek O(1)."
+  },
+  {
+    "ch": "H4",
+    "q": "Definieer: queue (FIFO) invariant.",
+    "a": "Head is het oudste element; enqueue achteraan, serve vooraan."
+  },
+  {
+    "ch": "H4",
+    "q": "Definieer: stack (LIFO) invariant.",
+    "a": "De top is het laatst gepushte element; push!/pop! werken alleen op die top."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij priority queue (HPFO).",
+    "a": "Na\u00efeve lijstimplementatie maakt \u00e9\u00e9n operatie O(n) per element."
+  },
+  {
+    "ch": "H4",
+    "q": "Definieer: circulaire buffer.",
+    "a": "Vector waarbij indices via modulo \u2018wrapen\u2019 zodat je ruimte hergebruikt."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij queue (FIFO) invariant.",
+    "a": "Verwarring full? vs empty? zonder \u2018one empty slot\u2019 conventie."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is heap property (min/max) belangrijk in dit hoofdstuk?",
+    "a": "Garandeert dat top altijd extremum is."
+  },
+  {
+    "ch": "H4",
+    "q": "Vergelijk circulaire buffer met trade-off vector vs linked voor ADTs.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is stack (LIFO) invariant belangrijk in dit hoofdstuk?",
+    "a": "Het bepaalt correctheid en O(1) implementaties."
+  },
+  {
+    "ch": "H4",
+    "q": "Definieer: queue (FIFO) invariant.",
+    "a": "Head is het oudste element; enqueue achteraan, serve vooraan."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van trade-off vector vs linked voor ADTs.",
+    "a": "Stack: vector in embedded, linked in onbegrensde scenario\u2019s."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is trade-off vector vs linked voor ADTs belangrijk in dit hoofdstuk?",
+    "a": "Keuze bepaalt snelheid/geheugen en full?-gedrag."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is trade-off vector vs linked voor ADTs belangrijk in dit hoofdstuk?",
+    "a": "Keuze bepaalt snelheid/geheugen en full?-gedrag."
+  },
+  {
+    "ch": "H4",
+    "q": "Vergelijk queue (FIFO) invariant met circulaire buffer.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van circulaire buffer.",
+    "a": "Audio ring buffer / producer-consumer."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van trade-off vector vs linked voor ADTs.",
+    "a": "Stack: vector in embedded, linked in onbegrensde scenario\u2019s."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is trade-off vector vs linked voor ADTs belangrijk in dit hoofdstuk?",
+    "a": "Keuze bepaalt snelheid/geheugen en full?-gedrag."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij stack (LIFO) invariant.",
+    "a": "Top/pop! op lege stack zonder empty? check."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van circulaire buffer.",
+    "a": "Audio ring buffer / producer-consumer."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij priority queue (HPFO).",
+    "a": "Na\u00efeve lijstimplementatie maakt \u00e9\u00e9n operatie O(n) per element."
+  },
+  {
+    "ch": "H4",
+    "q": "Vergelijk queue (FIFO) invariant met queue (FIFO) invariant.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is priority queue (HPFO) belangrijk in dit hoofdstuk?",
+    "a": "Modelleert scheduling en event-systems."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij stack (LIFO) invariant.",
+    "a": "Top/pop! op lege stack zonder empty? check."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is trade-off vector vs linked voor ADTs belangrijk in dit hoofdstuk?",
+    "a": "Keuze bepaalt snelheid/geheugen en full?-gedrag."
+  },
+  {
+    "ch": "H4",
+    "q": "Waarom is stack (LIFO) invariant belangrijk in dit hoofdstuk?",
+    "a": "Het bepaalt correctheid en O(1) implementaties."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef een concreet voorbeeld/toepassing van heap property (min/max).",
+    "a": "Top-k, priority queue backend."
+  },
+  {
+    "ch": "H4",
+    "q": "Noem een typische fout/pitfall bij circulaire buffer.",
+    "a": "Modulo-fouten (off-by-one) waardoor full/empty breekt."
+  },
+  {
+    "ch": "H4",
+    "q": "Geef de typische tijdscomplexiteit van queue (FIFO) invariant en leg kort uit.",
+    "a": "Met circulaire vector zijn enqueue/serve O(1)."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat betekent het sorteren van records met sleutelvelden en satellietvelden?",
+    "a": "Je sorteert op sleutelveld(en) (sort key). Alle andere velden zijn satellietvelden: die \u00e2\u0080\u0098verhuizen mee\u00e2\u0080\u0099 wanneer records verplaatst/geswapt worden."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat is het verschil tussen interne en externe sorteeralgoritmen?",
+    "a": "Intern: data past in geheugen (RAM). Extern: data is te groot en je sorteert met schijf/I/O (mergesort is basis voor externe sorting)."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is sorteren altijd minstens \u00ce\u00a9(n)?",
+    "a": "Je moet minstens elk element \u00c3\u00a9\u00c3\u00a9n keer lezen om te kunnen beslissen waar het hoort; dus lineaire ondergrens."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat is het verschil tussen comparatief en niet-comparatief sorteren?",
+    "a": "Comparatief: gebruikt enkel vergelijkingen (<, >). Niet-comparatief: gebruikt structuur van keys (digits/range) om posities te bepalen (radix/counting/bucket)."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom bestaat er geen \u00e2\u0080\u009cbeste\u00e2\u0080\u009d sorteeralgoritme?",
+    "a": "Keuze hangt af van data, key-structuur, geheugen, stabiliteit/in-place eisen, en representatie (vector vs lijst vs extern)."
+  },
+  {
+    "ch": "H5",
+    "q": "Wanneer heet een sorteeralgoritme stabiel?",
+    "a": "Als het de relatieve volgorde bewaart van records met gelijke sleutel."
+  },
+  {
+    "ch": "H5",
+    "q": "Geef een concreet voorbeeld waarin stabiliteit essentieel is.",
+    "a": "Als je eerst sorteert op \u00e2\u0080\u0098voornaam\u00e2\u0080\u0099 en daarna op \u00e2\u0080\u0098achternaam\u00e2\u0080\u0099, dan moet de tweede sort stabiel zijn zodat gelijke achternamen de voornaam-orde behouden."
+  },
+  {
+    "ch": "H5",
+    "q": "Wanneer heet een sorteeralgoritme in-place?",
+    "a": "Als het geen extra geheugen gebruikt buiten de te sorteren data (klassiek: O(1) extra ruimte)."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom betekent \u00e2\u0080\u009cniet stabiel\u00e2\u0080\u009d niet \u00e2\u0080\u009cniet gesorteerd\u00e2\u0080\u009d?",
+    "a": "Niet-stabiel kan nog perfect gesorteerd zijn op sleutel; alleen de volgorde tussen gelijke sleutels kan veranderen."
+  },
+  {
+    "ch": "H5",
+    "q": "Hoe be\u00c3\u00afnvloedt een strikte vs. niet-strikte orde stabiliteit?",
+    "a": "Als je bij gelijkheid niet swapt/verplaatst over elkaar heen (bv. strikt <), kan het stabiel blijven. Met niet-strikte beslissingen kan de implementatie gelijken omdraaien."
+  },
+  {
+    "ch": "H5",
+    "q": "Leg het basisidee van bubble sort uit.",
+    "a": "Herhaal passes: vergelijk buren en swap als ze fout staan; zo \u00e2\u0080\u0098bubbelt\u00e2\u0080\u0099 het grootste element telkens naar achter."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom kan bubble sort vroegtijdig stoppen?",
+    "a": "Als in een volledige pass geen swap gebeurde, dan is de array al gesorteerd."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat zijn best- en worst-case complexiteit van bubble sort?",
+    "a": "Best case: \u00ce\u00a9(n) met early-exit. Worst case: O(n\u00c2\u00b2) vergelijkingen en O(n\u00c2\u00b2) swaps."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is bubble sort stabiel (onder welke voorwaarde)?",
+    "a": "Als je alleen swapt bij strikte ongelijkheid en gelijke elementen nooit swapt, dan behouden gelijken hun volgorde."
+  },
+  {
+    "ch": "H5",
+    "q": "Leg het basisidee van insertion sort uit.",
+    "a": "Neem telkens een element en schuif grotere elementen op tot je de juiste plek vindt; plaats het element daar."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is insertion sort effici\u00c3\u00abnt op bijna gesorteerde data?",
+    "a": "Omdat elementen weinig moeten schuiven; het aantal inversies is klein, dus het werk wordt bijna lineair."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is insertion sort stabiel?",
+    "a": "Gelijke elementen passeren elkaar niet als je enkel verschuift bij strikte vergelijking."
+  },
+  {
+    "ch": "H5",
+    "q": "Leg het basisidee van selection sort uit.",
+    "a": "Zoek telkens het kleinste element in het resterende deel en swap het naar voor."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is selection sort niet stabiel?",
+    "a": "De swap kan records met gelijke sleutel van plaats wisselen over een grote afstand."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom doet selection sort altijd \u00ce\u0098(n\u00c2\u00b2) vergelijkingen?",
+    "a": "Je zoekt telkens het minimum in de rest: (n\u00e2\u0088\u00921)+(n\u00e2\u0088\u00922)+\u00e2\u0080\u00a6+1 = n(n\u00e2\u0088\u00921)/2, onafhankelijk van input."
+  },
+  {
+    "ch": "H5",
+    "q": "Leg het verdeel-en-heers principe uit.",
+    "a": "Divide: splits probleem; Conquer: los deelproblemen op; Combine: combineer deeloplossingen tot totaaloplossing."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom kan quicksort ontaarden in O(n\u00c2\u00b2)?",
+    "a": "Als de pivot telkens extreem slecht is (bv. steeds kleinste/grootste), krijg je ongebalanceerde splits en diepte ~ n."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat is het doel van randomized quicksort?",
+    "a": "De kans op systematisch slechte pivots verlagen door pivot willekeurig te kiezen; gemiddeld blijft het n log n."
+  },
+  {
+    "ch": "H5",
+    "q": "Wat is het idee achter mediaan-van-drie?",
+    "a": "Kies pivot als mediaan van (links, midden, rechts) om extreme pivots minder waarschijnlijk te maken."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is quicksort niet stabiel?",
+    "a": "Partition swaps kunnen gelijke sleutels over elkaar heen wisselen."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom gebruikt quicksort extra geheugen ondanks in-place swaps?",
+    "a": "Door recursie (call stack): gemiddeld \u00ce\u00a9(log n), worst-case O(n)."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom gebeurt bij mergesort het meeste werk tijdens het backtracken?",
+    "a": "De splits is goedkoop; het zware werk is het mergen van twee gesorteerde helften wanneer je terugkeert uit recursie."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is mergesort niet in-place?",
+    "a": "De merge stap gebruikt een hulpbuffer om twee delen samen te voegen \u00e2\u0086\u0092 extra O(n) geheugen."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is mergesort stabiel?",
+    "a": "Bij gelijkheid neem je consequent het element uit de linker helft eerst, zodat gelijken hun volgorde behouden."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is heapsort niet stabiel, ondanks gebruik van een heap?",
+    "a": "Heap-operaties doen swaps over grote afstanden; gelijke keys kunnen daardoor van relatieve volgorde wisselen."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is merge stap belangrijk in dit hoofdstuk?",
+    "a": "Is de kern van mergesort-correctheid."
+  },
+  {
+    "ch": "H5",
+    "q": "Waarom is decision tree lower bound belangrijk in dit hoofdstuk?",
+    "a": "Begrenst wat mogelijk is zonder key-structuur te gebruiken."
+  },
+  {
+    "ch": "H5",
+    "q": "Geef een concreet voorbeeld/toepassing van counting/radix sort assumpties.",
+    "a": "Sorteren van 32-bit ints per byte (base 256)."
+  },
+  {
+    "ch": "H5",
+    "q": "Geef een concreet voorbeeld/toepassing van counting/radix sort assumpties.",
+    "a": "Sorteren van 32-bit ints per byte (base 256)."
+  },
+  {
+    "ch": "H5",
+    "q": "Noem een typische fout/pitfall bij decision tree lower bound.",
+    "a": "Vergeten dat dit enkel geldt voor puur vergelijkend sorteren."
+  },
+  {
+    "ch": "H5",
+    "q": "Geef de typische tijdscomplexiteit van stabiliteit en leg kort uit.",
+    "a": "Afhankelijk van algoritme; merge/insertion typisch stabiel."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk counting/radix sort assumpties met decision tree lower bound.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk stabiliteit met stabiliteit.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Geef de typische tijdscomplexiteit van divide-and-conquer en leg kort uit.",
+    "a": "Typisch T(n)=aT(n/b)+O(n)."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk counting/radix sort assumpties met partitioning in quicksort.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Definieer: merge stap.",
+    "a": "Combineer twee gesorteerde lijsten in \u00e9\u00e9n gesorteerde lijst."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk merge stap met stabiliteit.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk decision tree lower bound met partitioning in quicksort.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk divide-and-conquer met counting/radix sort assumpties.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Geef de typische tijdscomplexiteit van counting/radix sort assumpties en leg kort uit.",
+    "a": "Counting: O(n+k). Radix: O(k\u00b7n)."
+  },
+  {
+    "ch": "H5",
+    "q": "Definieer: in-place.",
+    "a": "O(1) extra geheugen bovenop input (klassiek)."
+  },
+  {
+    "ch": "H5",
+    "q": "Noem een typische fout/pitfall bij in-place.",
+    "a": "Recursiestack telt ook als extra geheugen."
+  },
+  {
+    "ch": "H5",
+    "q": "Geef de typische tijdscomplexiteit van merge stap en leg kort uit.",
+    "a": "O(n) voor samen n elementen."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk in-place met stabiliteit.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Definieer: counting/radix sort assumpties.",
+    "a": "Keys uit beperkt bereik of als digits in vaste basis; gebruikt tellen/buckets i.p.v. vergelijken."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk in-place met in-place.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk counting/radix sort assumpties met divide-and-conquer.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk divide-and-conquer met merge stap.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  },
+  {
+    "ch": "H5",
+    "q": "Geef een concreet voorbeeld/toepassing van decision tree lower bound.",
+    "a": "Geen comparatieve sort kan worst-case O(n) halen voor arbitraire keys."
+  },
+  {
+    "ch": "H5",
+    "q": "Vergelijk in-place met decision tree lower bound.",
+    "a": "Vergelijk op: doel, invariant, typische operaties, tijd/ruimte trade-offs. (Schrijf 2 duidelijke verschillen.)"
+  }
+];
+// ---------- Robust storage ----------
+  const LS_KEY = "ad1_flashcards_progress_v2";
+
+  function storageAvailable(){
+    try{
+      const k="__t";
+      window.localStorage.setItem(k,"1");
+      window.localStorage.removeItem(k);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+  const HAS_STORAGE = storageAvailable();
+  const progressStore = {
+    load(){
+      if(!HAS_STORAGE) return {};
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      }catch(e){ return {}; }
+    },
+    save(map){
+      if(!HAS_STORAGE) return;
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify(map));
+      }catch(e){}
+    }
+  };
+
+  // ---------- State ----------
+  const state = {
+    mode: "all",
+    search: "",
+    idx: 0,
+    showAnswer: false,
+    progress: progressStore.load(), // { [id]: "known"|"unknown" }
+    order: Array.from({length: CARDS.length}, (_,i)=>i)
+  };
+
+  function cardId(i){ return `${CARDS[i].ch}:${i}`; }
+
+  // ---------- Elements ----------
+  const el = {
+    pillCount: document.getElementById("pillCount"),
+    pillMode: document.getElementById("pillMode"),
+    mode: document.getElementById("mode"),
+    search: document.getElementById("search"),
+    shuffleBtn: document.getElementById("shuffleBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+    storageBanner: document.getElementById("storageBanner"),
+
+    card: document.getElementById("card"),
+    tagLine: document.getElementById("tagLine"),
+    qtext: document.getElementById("qtext"),
+    answer: document.getElementById("answer"),
+    hint: document.getElementById("hint"),
+
+    prevBtn: document.getElementById("prevBtn"),
+    nextBtn: document.getElementById("nextBtn"),
+    flipBtn: document.getElementById("flipBtn"),
+    markGood: document.getElementById("markGood"),
+    markBad: document.getElementById("markBad"),
+    progressStat: document.getElementById("progressStat"),
+  };
+
+  if(!HAS_STORAGE){
+    el.storageBanner.style.display = "block";
+  }
+
+  // ---------- Filtering ----------
+  function filteredIndices(){
+    let idxs = state.order.slice();
+
+    idxs = idxs.filter(i => {
+      const ch = CARDS[i].ch;
+      const status = state.progress[cardId(i)];
+      if(/^h[1-7]$/i.test(state.mode)) return ch.toLowerCase() === state.mode.toLowerCase();
+      
+      if(state.mode === "known") return status === "known";
+      if(state.mode === "unknown") return status === "unknown";
+      return true;
+    });
+
+    const s = state.search.trim().toLowerCase();
+    if(s){
+      idxs = idxs.filter(i => {
+        const c = CARDS[i];
+        return (c.q + " " + c.a).toLowerCase().includes(s);
+      });
+    }
+    return idxs;
+  }
+
+  // ---------- UI ----------
+  function updateHeaderStats(){
+    const vals = Object.values(state.progress);
+    const known = vals.filter(x=>x==="known").length;
+    const unknown = vals.filter(x=>x==="unknown").length;
+    el.progressStat.textContent = `Gekend: ${known} • Niet: ${unknown}`;
+
+    const modeLabel = ({
+      all:"Alles",
+      h1:"H1",
+      h2:"H2",
+      h3:"H3",
+      h4:"H4",
+      h5:"H5",
+      h6:"H6",
+      h7:"H7",
+      known:"Gekend",
+      unknown:"Niet gekend"
+    })[state.mode] || "Alles";
+    el.pillMode.textContent = `Mode: ${modeLabel}`;
+  }
+
+  function render(){
+    const list = filteredIndices();
+    el.pillCount.textContent = `${list.length} kaarten`;
+
+    if(list.length === 0){
+      el.tagLine.innerHTML = `<b>—</b> • 0/0`;
+      el.qtext.textContent = "Geen kaarten gevonden voor deze filter/zoekopdracht.";
+      el.answer.classList.add("hidden");
+      el.answer.textContent = "";
+      el.hint.textContent = "Pas je filters/zoekterm aan.";
+      updateHeaderStats();
+      return;
+    }
+
+    if(state.idx < 0) state.idx = 0;
+    if(state.idx >= list.length) state.idx = list.length - 1;
+
+    const cardIndex = list[state.idx];
+    const c = CARDS[cardIndex];
+    const status = state.progress[cardId(cardIndex)] || "—";
+
+    el.tagLine.innerHTML = `<b>${c.ch}</b> • Vraag ${state.idx+1}/${list.length} • Status: ${status}`;
+    el.qtext.textContent = c.q;
+    el.answer.textContent = c.a;
+
+    if(state.showAnswer){
+      el.answer.classList.remove("hidden");
+      el.hint.textContent = "Antwoord zichtbaar. (Tik opnieuw of ‘Show/Hide’ om te verbergen)";
+    }else{
+      el.answer.classList.add("hidden");
+      el.hint.textContent = "Tip: tik om antwoord te tonen. (Of gebruik “Show/Hide Answer”)";
+    }
+
+    updateHeaderStats();
+  }
+
+  // ---------- Actions ----------
+  function toggleAnswer(){
+    state.showAnswer = !state.showAnswer;
+    render();
+  }
+
+  function next(){
+    state.showAnswer = false;
+    state.idx++;
+    render();
+  }
+  function prev(){
+    state.showAnswer = false;
+    state.idx--;
+    render();
+  }
+
+  function mark(status){
+    const list = filteredIndices();
+    if(list.length === 0) return;
+    const cardIndex = list[state.idx];
+    state.progress[cardId(cardIndex)] = status;
+    progressStore.save(state.progress);
+    render();
+  }
+
+  function shuffle(){
+    for(let i = state.order.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
+    }
+    state.idx = 0;
+    state.showAnswer = false;
+    render();
+  }
+
+  function resetProgress(){
+    // confirm without blocking if confirm not available
+    const ok = (typeof window.confirm === "function") ? window.confirm("Reset alle progress (gekend/niet gekend)?") : true;
+    if(!ok) return;
+    state.progress = {};
+    progressStore.save(state.progress);
+    render();
+  }
+
+  // ---------- Events ----------
+  // Card: click to flip
+  el.card.addEventListener("click", toggleAnswer);
+
+  // Simple swipe (touch) on card
+  let touchX = null;
+  el.card.addEventListener("touchstart", (e)=>{ touchX = e.touches[0].clientX; }, {passive:true});
+  el.card.addEventListener("touchend", (e)=>{
+    if(touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    touchX = null;
+    if(Math.abs(dx) < 60) return;
+    if(dx < 0) next(); else prev();
+  }, {passive:true});
+
+  // Buttons
+  el.flipBtn.addEventListener("click", toggleAnswer);
+  el.nextBtn.addEventListener("click", next);
+  el.prevBtn.addEventListener("click", prev);
+  el.markGood.addEventListener("click", ()=>mark("known"));
+  el.markBad.addEventListener("click", ()=>mark("unknown"));
+  el.shuffleBtn.addEventListener("click", shuffle);
+  el.resetBtn.addEventListener("click", resetProgress);
+
+  // Filters
+  el.mode.addEventListener("change", (e)=>{
+    state.mode = e.target.value;
+    state.idx = 0;
+    state.showAnswer = false;
+    render();
+  });
+  el.search.addEventListener("input", (e)=>{
+    state.search = e.target.value;
+    state.idx = 0;
+    state.showAnswer = false;
+    render();
+  });
+
+  // Keyboard support
+  window.addEventListener("keydown", (e)=>{
+    if(e.key === "ArrowRight") next();
+    if(e.key === "ArrowLeft") prev();
+    if(e.key === " " || e.key === "Enter") toggleAnswer();
+    if(e.key.toLowerCase() === "k") mark("known");
+    if(e.key.toLowerCase() === "u") mark("unknown");
+  });
+
+  // Accessibility: Enter/Space on card
+  el.card.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      toggleAnswer();
+    }
+  });
+
+  // Init
+  el.mode.value = state.mode;
+  render();
+})();
+</script>
+</body>
+</html>
